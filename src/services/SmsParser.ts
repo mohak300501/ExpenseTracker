@@ -21,7 +21,8 @@ export const parseSms = (address: string, body: string, dateMs: number): Transac
         // 3. Extract Account Number: XXNNNN or XNNNN at start of body roughly
         const accountRegex = /(?:[xX*]{1,5})(\d{3,5})/;
         const accountMatch = body.match(accountRegex);
-        const account_number = accountMatch ? `XX${accountMatch[1]}` : 'Unknown';
+        if (!accountMatch) return null;
+        const account_number = `XX${accountMatch[1]}`;
 
         // 4. Bank name: from address (e.g. VK-HDFCBK) or string end
         let bank_name = address;

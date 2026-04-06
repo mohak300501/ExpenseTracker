@@ -7,15 +7,6 @@ import { isSameDay } from 'date-fns';
 
 const BACKGROUND_FETCH_TASK = 'background-fetch-sms';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   try {
     const isNewData = await syncSmsMessages();
@@ -25,8 +16,11 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     if (notifyTimeStr) {
       const [hour, minute] = notifyTimeStr.split(':').map(Number);
       const now = new Date();
-      // Simple heuristic: if it's the target hour, check if we already notified today
-      if (now.getHours() === hour) {
+      
+      const targetTime = new Date();
+      targetTime.setHours(hour, minute, 0, 0);
+
+      if (now.getTime() >= targetTime.getTime()) {
         const lastNotifiedStr = await getSetting('last_notified_date');
         const lastNotified = lastNotifiedStr ? parseInt(lastNotifiedStr, 10) : 0;
         
@@ -54,6 +48,16 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   } catch (error) {
     return BackgroundFetch.BackgroundFetchResult.Failed;
   }
+});
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: false,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
 });
 
 export const registerBackgroundFetchAsync = async () => {

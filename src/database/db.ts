@@ -74,3 +74,11 @@ export const clearAllData = async () => {
     const db = await getDB();
     await db.execAsync('DELETE FROM Transactions;');
 };
+
+export const getDistinctBanks = async (): Promise<string[]> => {
+    const db = await getDB();
+    const rows = await db.getAllAsync<{bank_name: string, account_number: string}>(
+        'SELECT DISTINCT bank_name, account_number FROM Transactions WHERE bank_name IS NOT NULL AND account_number IS NOT NULL'
+    );
+    return rows.map(r => `${r.bank_name} (${r.account_number})`);
+};
